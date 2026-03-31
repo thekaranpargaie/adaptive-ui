@@ -32,6 +32,8 @@ npm run cli -- validate schema.json
 ```
 
 ## Try It Out
+![Adaptive UI](https://github.com/user-attachments/assets/db292857-3f7c-42f6-9482-329f30af3d0e)
+
 
 **Interactive Playground**: Start a server that demonstrates real package integration:
 
