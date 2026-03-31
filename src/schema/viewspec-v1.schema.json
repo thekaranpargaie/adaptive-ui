@@ -1,0 +1,760 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://adaptiveui.dev/schemas/viewspec-v1.json",
+  "title": "ViewSpec",
+  "description": "AdaptiveUI ViewSpec v1.0.0 - A protocol for defining adaptive UI views",
+  "type": "object",
+  "required": ["version", "view", "title", "sections"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the ViewSpec schema (e.g., 1.0.0)"
+    },
+    "view": {
+      "type": "string",
+      "minLength": 1,
+      "description": "View type identifier"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "View title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional view description"
+    },
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/section"
+      },
+      "description": "Sections containing components"
+    },
+    "metadata": {
+      "$ref": "#/definitions/metadata",
+      "description": "Global metadata"
+    }
+  },
+  "definitions": {
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Metadata object with arbitrary key-value pairs"
+    },
+    "spacingToken": {
+      "type": "string",
+      "enum": ["none", "xs", "sm", "md", "lg", "xl", "2xl"],
+      "description": "Spacing token"
+    },
+    "responsiveBreakpoint": {
+      "type": "object",
+      "properties": {
+        "minWidth": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Minimum width in pixels"
+        },
+        "maxWidth": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum width in pixels"
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of columns at this breakpoint"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Layout direction at this breakpoint"
+        }
+      },
+      "additionalProperties": false
+    },
+    "gridLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "grid"
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of columns"
+        },
+        "gap": {
+          "$ref": "#/definitions/spacingToken",
+          "description": "Gap between grid items"
+        },
+        "autoFlow": {
+          "type": "string",
+          "enum": ["row", "column", "dense"],
+          "description": "Auto-flow behavior"
+        },
+        "spacing": {
+          "$ref": "#/definitions/spacingToken"
+        },
+        "padding": {
+          "$ref": "#/definitions/spacingToken"
+        },
+        "responsive": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/responsiveBreakpoint"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stackLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "stack"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Stack direction"
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "center", "end", "stretch"],
+          "description": "Alignment of items"
+        },
+        "justify": {
+          "type": "string",
+          "enum": ["start", "center", "end", "space-between", "space-around", "space-evenly"],
+          "description": "Justify content"
+        },
+        "spacing": {
+          "$ref": "#/definitions/spacingToken"
+        },
+        "padding": {
+          "$ref": "#/definitions/spacingToken"
+        },
+        "responsive": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/responsiveBreakpoint"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "flowLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "flow"
+        },
+        "maxWidth": {
+          "type": "string",
+          "description": "Maximum width for content"
+        },
+        "spacing": {
+          "$ref": "#/definitions/spacingToken"
+        },
+        "padding": {
+          "$ref": "#/definitions/spacingToken"
+        },
+        "responsive": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/responsiveBreakpoint"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "layout": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/gridLayout"
+        },
+        {
+          "$ref": "#/definitions/stackLayout"
+        },
+        {
+          "$ref": "#/definitions/flowLayout"
+        }
+      ]
+    },
+    "metricItem": {
+      "type": "object",
+      "required": ["label", "value"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Metric label"
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "Metric value"
+        },
+        "unit": {
+          "type": "string",
+          "description": "Optional unit (%, ms, MB, etc.)"
+        },
+        "trend": {
+          "type": "object",
+          "required": ["direction"],
+          "properties": {
+            "direction": {
+              "type": "string",
+              "enum": ["up", "down", "neutral"],
+              "description": "Trend direction"
+            },
+            "value": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "description": "Trend value"
+            },
+            "label": {
+              "type": "string",
+              "description": "Trend label"
+            }
+          },
+          "additionalProperties": false
+        },
+        "emphasis": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Emphasis level"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metricGridComponent": {
+      "type": "object",
+      "required": ["type", "items"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "metric-grid"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/metricItem"
+          },
+          "description": "List of metrics"
+        },
+        "columns": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of columns"
+        },
+        "title": {
+          "type": "string",
+          "description": "Component title"
+        }
+      },
+      "additionalProperties": false
+    },
+    "chartDataPoint": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "description": "X-axis value"
+        },
+        "y": {
+          "type": "number",
+          "description": "Y-axis value"
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional label"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Optional metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "chartSeries": {
+      "type": "object",
+      "required": ["name", "data"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Series name"
+        },
+        "data": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/chartDataPoint"
+          },
+          "description": "Data points"
+        },
+        "color": {
+          "type": "string",
+          "description": "Series color"
+        }
+      },
+      "additionalProperties": false
+    },
+    "chartComponent": {
+      "type": "object",
+      "required": ["type", "chartType", "series"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "chart"
+        },
+        "chartType": {
+          "type": "string",
+          "enum": ["line", "bar", "pie", "scatter", "area"],
+          "description": "Chart type"
+        },
+        "title": {
+          "type": "string",
+          "description": "Chart title"
+        },
+        "series": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/chartSeries"
+          },
+          "description": "Data series"
+        },
+        "xAxis": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["linear", "time", "category"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "yAxis": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            }
+          },
+          "additionalProperties": false
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Chart height in pixels"
+        },
+        "legend": {
+          "type": "boolean",
+          "description": "Show legend"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tableColumn": {
+      "type": "object",
+      "required": ["key", "label"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Column key"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Column header label"
+        },
+        "width": {
+          "type": "string",
+          "description": "Column width"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["text", "number", "date", "boolean"],
+          "description": "Data type"
+        },
+        "align": {
+          "type": "string",
+          "enum": ["left", "center", "right"],
+          "description": "Alignment"
+        },
+        "sortable": {
+          "type": "boolean",
+          "description": "Is sortable"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tableComponent": {
+      "type": "object",
+      "required": ["type", "columns", "rows"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "table"
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/tableColumn"
+          },
+          "description": "Column definitions"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Row data"
+        },
+        "title": {
+          "type": "string",
+          "description": "Table title"
+        },
+        "showHeader": {
+          "type": "boolean",
+          "description": "Show header"
+        },
+        "striped": {
+          "type": "boolean",
+          "description": "Striped rows"
+        },
+        "hover": {
+          "type": "boolean",
+          "description": "Hover effect"
+        },
+        "compact": {
+          "type": "boolean",
+          "description": "Compact mode"
+        }
+      },
+      "additionalProperties": false
+    },
+    "logEntry": {
+      "type": "object",
+      "required": ["timestamp", "level", "message"],
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error", "critical"],
+          "description": "Severity level"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Log message"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source/logger name"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "logViewComponent": {
+      "type": "object",
+      "required": ["type", "entries"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "log-view"
+        },
+        "entries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/logEntry"
+          },
+          "description": "Log entries"
+        },
+        "title": {
+          "type": "string",
+          "description": "Component title"
+        },
+        "maxEntries": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum entries to display"
+        },
+        "showTimestamp": {
+          "type": "boolean",
+          "description": "Show timestamps"
+        },
+        "showSource": {
+          "type": "boolean",
+          "description": "Show source"
+        }
+      },
+      "additionalProperties": false
+    },
+    "timelineEvent": {
+      "type": "object",
+      "required": ["timestamp", "title"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Event ID"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Event timestamp"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Event title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Event description"
+        },
+        "category": {
+          "type": "string",
+          "description": "Event category"
+        },
+        "milestone": {
+          "type": "boolean",
+          "description": "Is milestone"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in-progress", "completed", "failed"],
+          "description": "Event status"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "timelineComponent": {
+      "type": "object",
+      "required": ["type", "events"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "timeline"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/timelineEvent"
+          },
+          "description": "Timeline events"
+        },
+        "title": {
+          "type": "string",
+          "description": "Component title"
+        },
+        "orientation": {
+          "type": "string",
+          "enum": ["vertical", "horizontal"],
+          "description": "Timeline orientation"
+        },
+        "showLines": {
+          "type": "boolean",
+          "description": "Show connecting lines"
+        }
+      },
+      "additionalProperties": false
+    },
+    "textBlockComponent": {
+      "type": "object",
+      "required": ["type", "content"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "text-block"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Text content"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["plain", "markdown"],
+          "description": "Content format"
+        },
+        "emphasis": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "description": "Emphasis level"
+        },
+        "title": {
+          "type": "string",
+          "description": "Optional title"
+        }
+      },
+      "additionalProperties": false
+    },
+    "listItem": {
+      "type": "object",
+      "required": ["content"],
+      "properties": {
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Item content"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/listItem"
+          },
+          "description": "Nested items"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Item metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "listComponent": {
+      "type": "object",
+      "required": ["type", "listType", "items"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "list"
+        },
+        "listType": {
+          "type": "string",
+          "enum": ["ordered", "unordered", "definition"],
+          "description": "List type"
+        },
+        "items": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/listItem"
+          },
+          "description": "List items"
+        },
+        "title": {
+          "type": "string",
+          "description": "Component title"
+        }
+      },
+      "additionalProperties": false
+    },
+    "component": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/metricGridComponent"
+        },
+        {
+          "$ref": "#/definitions/chartComponent"
+        },
+        {
+          "$ref": "#/definitions/tableComponent"
+        },
+        {
+          "$ref": "#/definitions/logViewComponent"
+        },
+        {
+          "$ref": "#/definitions/timelineComponent"
+        },
+        {
+          "$ref": "#/definitions/textBlockComponent"
+        },
+        {
+          "$ref": "#/definitions/listComponent"
+        }
+      ]
+    },
+    "section": {
+      "type": "object",
+      "required": ["components"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Section ID"
+        },
+        "title": {
+          "type": "string",
+          "description": "Section title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Section description"
+        },
+        "layout": {
+          "$ref": "#/definitions/layout",
+          "description": "Layout configuration"
+        },
+        "components": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/component"
+          },
+          "description": "Components within section"
+        },
+        "metadata": {
+          "$ref": "#/definitions/metadata",
+          "description": "Section metadata"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

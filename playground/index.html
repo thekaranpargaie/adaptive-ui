@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive UI Playground</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Light, Clean Professional Theme */
+      --color-bg-white: #FFFFFF;
+      --color-bg-light: #F8FAFB;
+      --color-bg-lighter: #F3F5F7;
+      --color-bg-editor: #FAFBFC;
+      --color-text-primary: #1F2937;
+      --color-text-secondary: #6B7280;
+      --color-text-tertiary: #9CA3AF;
+      --color-border: #E5E7EB;
+      --color-border-dark: #D1D5DB;
+      --color-primary: #2563EB;
+      --color-primary-hover: #1D4ED8;
+      --color-primary-light: #EFF6FF;
+      --color-success: #059669;
+      --color-success-light: #ECFDF5;
+      --color-error: #DC2626;
+      --color-error-light: #FEF2F2;
+      --color-warning: #D97706;
+      --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-code: 'JetBrains Mono', 'Monaco', monospace;
+      --size-2: 8px;
+      --size-3: 12px;
+      --size-4: 16px;
+      --size-5: 20px;
+      --transition-fast: 150ms ease;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { font-family: var(--font-ui); background: var(--color-bg-light); color: var(--color-text-primary); height: 100%; overflow: hidden; }
+
+    .playground { display: flex; flex-direction: column; height: 100vh; }
+
+    .header { background: var(--color-bg-white); padding: 24px; border-bottom: 1px solid var(--color-border); flex-shrink: 0; box-shadow: var(--shadow-sm); }
+    .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: var(--color-text-primary); }
+    .header p { font-size: 14px; color: var(--color-text-secondary); font-weight: 500; }
+
+    .toolbar { background: var(--color-bg-white); border-bottom: 1px solid var(--color-border); padding: 16px 24px; display: flex; gap: 12px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+
+    .content { display: flex; flex: 1; overflow: hidden; }
+
+    .panel { display: flex; flex-direction: column; overflow: hidden; flex: 1; background: var(--color-bg-white); }
+    .editor-panel { border-right: 1px solid var(--color-border); }
+    .preview-panel { border-left: 1px solid var(--color-border); }
+
+    .panel-header { padding: 12px 16px; background: var(--color-bg-lighter); border-bottom: 1px solid var(--color-border); font-size: 12px; font-weight: 600; color: var(--color-text-secondary); flex-shrink: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .panel-controls { padding: 12px 16px; background: var(--color-bg-light); border-bottom: 1px solid var(--color-border); display: flex; gap: 8px; flex-shrink: 0; }
+
+    .panel-content { flex: 1; overflow: auto; }
+
+    #editor { width: 100%; height: 100%; border: none; background: var(--color-bg-editor); color: var(--color-text-primary); padding: 16px; font-family: var(--font-code); font-size: 13px; line-height: 1.6; resize: none; }
+
+    #preview { padding: 24px; width: 100%; min-height: 100%; background: var(--color-bg-white); }
+
+    .error-panel { max-height: 30%; background: var(--color-error-light); border-top: 2px solid var(--color-error); overflow: auto; padding: 16px; font-family: var(--font-code); font-size: 12px; color: var(--color-error); white-space: pre-wrap; flex-shrink: 0; }
+    .error-panel.hidden { display: none; }
+    .error-title { font-weight: 700; margin-bottom: 8px; }
+    .error-item { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(220, 38, 38, 0.2); }
+    .error-item:last-child { border: none; }
+
+    select { 
+      padding: 8px 12px; 
+      border: 1px solid var(--color-border); 
+      border-radius: 6px; 
+      background: var(--color-bg-white); 
+      color: var(--color-text-primary); 
+      font-family: var(--font-ui); 
+      font-size: 14px; 
+      font-weight: 500;
+      cursor: pointer; 
+      transition: var(--transition-fast);
+      box-shadow: var(--shadow-sm);
+    }
+    select:hover { border-color: var(--color-border-dark); }
+    select:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-light); }
+
+    button { 
+      padding: 8px 16px; 
+      border: 1px solid transparent;
+      border-radius: 6px; 
+      font-family: var(--font-ui); 
+      font-size: 14px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all var(--transition-fast); 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      white-space: nowrap;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    button.primary { 
+      background: var(--color-primary); 
+      color: white; 
+      border-color: var(--color-primary);
+    }
+    button.primary:hover { 
+      background: var(--color-primary-hover); 
+      border-color: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
+    }
+    
+    button.secondary { 
+      background: var(--color-bg-light); 
+      color: var(--color-text-primary); 
+      border: 1px solid var(--color-border); 
+    }
+    button.secondary:hover { 
+      background: var(--color-bg-lighter);
+      border-color: var(--color-border-dark);
+      box-shadow: var(--shadow-md);
+    }
+    
+    button:focus { outline: none; box-shadow: 0 0 0 3px var(--color-primary-light); }
+
+    .status { margin-left: auto; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .status.valid { background: var(--color-success-light); color: var(--color-success); }
+    .status.invalid { background: var(--color-error-light); color: var(--color-error); }
+    .status.loading { background: #FEF3C7; color: var(--color-warning); }
+
+    .chart-container { background: var(--color-bg-white); border-radius: 8px; padding: 16px; margin: 16px 0; border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); }
+
+    table { width: 100%; border-collapse: collapse; background: var(--color-bg-white); margin: 16px 0; }
+    th { text-align: left; padding: 12px 16px; background: var(--color-bg-lighter); border-bottom: 2px solid var(--color-border); font-weight: 600; font-size: 12px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 12px 16px; border-bottom: 1px solid var(--color-border); font-size: 14px; color: var(--color-text-primary); }
+    tr:hover { background: var(--color-bg-light); }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--color-bg-light); }
+    ::-webkit-scrollbar-thumb { background: var(--color-border-dark); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-text-tertiary); }
+
+    @media (max-width: 1024px) {
+      .content { flex-direction: column; }
+      .editor-panel { flex: 0 0 40%; border-right: none; border-bottom: 1px solid var(--color-border); }
+      .preview-panel { flex: 1; border-left: none; }
+    }
+
+    @media (max-width: 640px) {
+      .toolbar { flex-wrap: wrap; }
+      .status { margin-left: 0; width: 100%; }
+      .editor-panel { flex: 0 0 50%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="playground">
+    <div class="header">
+      <h1>Adaptive UI Playground</h1>
+      <p>Edit ViewSpec JSON on the left → See live preview on the right (using real Adaptive UI functions)</p>
+    </div>
+
+    <div class="toolbar">
+      <select id="examplesSelect" onchange="loadExample(this.value)">
+        <option value="">Load example...</option>
+      </select>
+      <button class="secondary" onclick="formatJSON()">Format JSON</button>
+      <button class="secondary" onclick="copyJSON()">Copy JSON</button>
+      <div class="status valid" id="status">
+        <span id="statusText">✓ Ready</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="panel editor-panel">
+        <div class="panel-header">ViewSpec (JSON)</div>
+        <div class="panel-controls">
+          <button class="primary" style="font-size: 12px;" onclick="renderPreview()">Render Preview</button>
+        </div>
+        <div class="panel-content">
+          <textarea id="editor" placeholder="Paste or edit your ViewSpec here..."></textarea>
+        </div>
+      </div>
+
+      <div class="panel preview-panel">
+        <div class="panel-header">Preview (rendered using renderViewSpec())</div>
+        <div class="panel-content">
+          <div id="preview">
+            <p style="color: var(--color-text-tertiary); padding: var(--size-5);">Enter a ViewSpec and click Render to see the preview</p>
+          </div>
+        </div>
+        <div class="error-panel hidden" id="errorPanel"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadExamples();
+    });
+
+    let renderTimeout;
+    document.getElementById('editor').addEventListener('input', () => {
+      clearTimeout(renderTimeout);
+      renderTimeout = setTimeout(() => {
+        renderPreview();
+      }, 500);
+    });
+
+    async function loadExamples() {
+      try {
+        const response = await fetch('/api/examples');
+        const data = await response.json();
+        const select = document.getElementById('examplesSelect');
+        data.examples.forEach(example => {
+          const option = document.createElement('option');
+          option.value = example.id;
+          option.textContent = example.title;
+          select.appendChild(option);
+        });
+        if (data.examples.length > 0) {
+          loadExample(data.examples[0].id);
+        }
+      } catch (error) {
+        showError('Failed to load examples', error.message);
+      }
+    }
+
+    async function loadExample(exampleId) {
+      if (!exampleId) return;
+      try {
+        const response = await fetch('/api/examples');
+        const data = await response.json();
+        const example = data.data[exampleId];
+        if (example) {
+          document.getElementById('editor').value = JSON.stringify(example, null, 2);
+          renderPreview();
+        }
+      } catch (error) {
+        showError('Failed to load example', error.message);
+      }
+    }
+
+    async function renderPreview() {
+      try {
+        const editor = document.getElementById('editor');
+        const viewSpec = JSON.parse(editor.value);
+        updateStatus('Validating...', 'loading');
+        const validateResponse = await fetch('/api/validate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(viewSpec)
+        });
+        const validation = await validateResponse.json();
+        if (!validation.valid) {
+          showErrors(validation.errors);
+          updateStatus('Invalid', 'invalid');
+          return;
+        }
+        hideErrors();
+        updateStatus('Rendering...', 'loading');
+        const renderResponse = await fetch('/api/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(viewSpec)
+        });
+        const result = await renderResponse.json();
+        if (!result.success) {
+          showError('Render Error', result.error);
+          updateStatus('Error', 'invalid');
+          return;
+        }
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '<style>' + result.css + '</style>' + result.html;
+        setTimeout(() => initializeCharts(), 10);
+        updateStatus('Valid', 'valid');
+      } catch (error) {
+        showError('Error parsing JSON', error.message);
+        updateStatus('Error', 'invalid');
+      }
+    }
+
+    function formatJSON() {
+      try {
+        const editor = document.getElementById('editor');
+        const json = JSON.parse(editor.value);
+        editor.value = JSON.stringify(json, null, 2);
+        updateStatus('Formatted', 'valid');
+      } catch (error) {
+        showError('Invalid JSON', error.message);
+      }
+    }
+
+    function copyJSON() {
+      try {
+        const editor = document.getElementById('editor');
+        editor.select();
+        document.execCommand('copy');
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.disabled = true;
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = false;
+        }, 2000);
+      } catch (error) {
+        showError('Copy failed', error.message);
+      }
+    }
+
+    function showError(title, message) {
+      showErrors([{ path: title, message }]);
+    }
+
+    function showErrors(errors) {
+      const panel = document.getElementById('errorPanel');
+      if (!errors || errors.length === 0) {
+        panel.classList.add('hidden');
+        return;
+      }
+      let html = '<div class="error-title">Validation Errors</div>';
+      errors.forEach(error => {
+        html += '<div class="error-item"><strong>' + escapeHtml(error.path || 'Error') + ':</strong> ' + escapeHtml(error.message) + '</div>';
+      });
+      panel.innerHTML = html;
+      panel.classList.remove('hidden');
+    }
+
+    function hideErrors() {
+      document.getElementById('errorPanel').classList.add('hidden');
+    }
+
+    function updateStatus(text, status) {
+      const statusEl = document.getElementById('status');
+      statusEl.className = 'status';
+      if (status) statusEl.classList.add(status);
+      statusEl.innerHTML = '<span id="statusText">' + escapeHtml(text) + '</span>';
+    }
+
+    function initializeCharts() {
+      const chartElements = document.querySelectorAll('[data-chart-id]');
+      chartElements.forEach(chartEl => {
+        const canvasId = chartEl.getAttribute('data-chart-id');
+        const configJson = chartEl.getAttribute('data-chart-config');
+        if (canvasId && configJson && typeof Chart !== 'undefined') {
+          const canvas = document.getElementById(canvasId);
+          if (canvas && !canvas.__chart__) {
+            try {
+              const config = JSON.parse(configJson);
+              config.options = config.options || {};
+              config.options.plugins = config.options.plugins || {};
+              config.options.plugins.legend = config.options.plugins.legend || {};
+              config.options.plugins.legend.labels = config.options.plugins.legend.labels || {};
+              config.options.plugins.legend.labels.color = '#1F2937';
+              config.options.plugins.legend.labels.font = config.options.plugins.legend.labels.font || {};
+              config.options.plugins.legend.labels.font.family = "'Inter', sans-serif";
+              
+              if (config.options.plugins.title) {
+                config.options.plugins.title.color = '#1F2937';
+                config.options.plugins.title.font = config.options.plugins.title.font || {};
+                config.options.plugins.title.font.family = "'Inter', sans-serif";
+              }
+              
+              if (config.options.scales) {
+                Object.keys(config.options.scales).forEach(scaleKey => {
+                  const scale = config.options.scales[scaleKey];
+                  if (scale.grid) scale.grid.color = '#E5E7EB';
+                  if (scale.ticks) scale.ticks.color = '#6B7280';
+                  if (scale.title) {
+                    scale.title.color = '#1F2937';
+                    scale.title.font = scale.title.font || {};
+                    scale.title.font.family = "'Inter', sans-serif";
+                  }
+                });
+              }
+              
+              const ctx = canvas.getContext('2d');
+              canvas.__chart__ = new Chart(ctx, config);
+            } catch (error) {
+              console.error('Failed to initialize chart:', error);
+            }
+          }
+        }
+      });
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+  </script>
+</body>
+</html>
