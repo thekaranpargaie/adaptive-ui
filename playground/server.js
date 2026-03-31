@@ -185,7 +185,7 @@ const examples = {
           },
           {
             type: 'chart',
-            chartType: 'doughnut',
+            chartType: 'pie',
             title: 'User Distribution',
             height: 300,
             series: [
@@ -290,11 +290,11 @@ const examples = {
             type: 'timeline',
             title: 'Release Schedule',
             events: [
-              { date: '2024-01-15', title: 'Beta Launch', description: 'Initial beta release to early adopters', status: 'completed' },
-              { date: '2024-02-01', title: 'Feature: Analytics', description: 'Added comprehensive analytics dashboard', status: 'completed' },
-              { date: '2024-02-28', title: 'V1.0 Release', description: 'Public release of version 1.0', status: 'completed' },
-              { date: '2024-03-15', title: 'Feature: API', description: 'RESTful API now available', status: 'in-progress' },
-              { date: '2024-04-30', title: 'V1.5 Planned', description: 'Next major update with new features', status: 'planned' }
+              { timestamp: '2024-01-15', title: 'Beta Launch', description: 'Initial beta release to early adopters', status: 'completed' },
+              { timestamp: '2024-02-01', title: 'Feature: Analytics', description: 'Added comprehensive analytics dashboard', status: 'completed' },
+              { timestamp: '2024-02-28', title: 'V1.0 Release', description: 'Public release of version 1.0', status: 'completed' },
+              { timestamp: '2024-03-15', title: 'Feature: API', description: 'RESTful API now available', status: 'in-progress' },
+              { timestamp: '2024-04-30', title: 'V1.5 Planned', description: 'Next major update with new features', status: 'pending' }
             ]
           }
         ]
@@ -315,13 +315,14 @@ const examples = {
         components: [
           {
             type: 'list',
+            listType: 'unordered',
             title: 'Active Team Members',
             items: [
-              { label: 'Sarah Anderson', description: 'Product Manager - New York' },
-              { label: 'Mike Chen', description: 'Senior Engineer - San Francisco' },
-              { label: 'Emma Rodriguez', description: 'UX Designer - Austin' },
-              { label: 'James Wilson', description: 'DevOps Engineer - Seattle' },
-              { label: 'Lisa Thompson', description: 'Marketing Lead - Boston' }
+              { content: 'Sarah Anderson - Product Manager (New York)' },
+              { content: 'Mike Chen - Senior Engineer (San Francisco)' },
+              { content: 'Emma Rodriguez - UX Designer (Austin)' },
+              { content: 'James Wilson - DevOps Engineer (Seattle)' },
+              { content: 'Lisa Thompson - Marketing Lead (Boston)' }
             ]
           }
         ]
@@ -343,7 +344,7 @@ const examples = {
           {
             type: 'log-view',
             title: 'Application Logs',
-            logs: [
+            entries: [
               { timestamp: '2024-03-15T14:35:22Z', level: 'error', message: 'Database connection timeout on shard-3', source: 'database.ts:142' },
               { timestamp: '2024-03-15T14:34:10Z', level: 'warn', message: 'High memory usage detected (85%)', source: 'memory.ts:56' },
               { timestamp: '2024-03-15T14:32:45Z', level: 'info', message: 'Cache cleared successfully', source: 'cache.ts:89' },
